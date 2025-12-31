@@ -1,5 +1,6 @@
 package com.aryan.cetreader.ui
 
+import com.aryan.cetreader.ui.model.Article
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -58,14 +59,19 @@ fun FeaturedCard(article: Article?) {
             shape = CardDefaults.shape
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
+
                 Text("Featured", fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(6.dp))
+
                 Text(
-                    "Elon Musk says X will pay content creators more than YouTube",
-                    fontWeight = FontWeight.Bold
+                    article.title,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2
                 )
+
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("Source: Times of India • 1h ago")
+                Text("${article.source} • ${article.pubDate}")
+
             }
         }
     }

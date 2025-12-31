@@ -64,17 +64,14 @@ fun NewsCard(item: NewsItem) {
 }
 
 
-data class NewsItem(
-    val title: String,
-    val source: String,
-    val time: String
-)
+if (article == null) return
 
-val fakeNews = listOf(
-    NewsItem("India launches indigenous Pralay missiles", "NDTV", "1h ago"),
-    NewsItem("Thrown out of moving car at 90 kmph", "Hindustan Times", "2h ago"),
-    NewsItem("UP home welcomes same-sex bride", "India Today", "3h ago"),
-    NewsItem("Bangladesh ex-PM laid to rest", "NDTV World", "4h ago"),
-    NewsItem("Tech layoffs slow down globally", "Economic Times", "5h ago"),
-    NewsItem("New space policy announced", "The Hindu", "6h ago")
+Text("Featured", fontWeight = FontWeight.SemiBold)
+Spacer(modifier = Modifier.height(6.dp))
+Text(
+    article.title,
+    fontWeight = FontWeight.Bold,
+    maxLines = 2
 )
+Spacer(modifier = Modifier.height(4.dp))
+Text("${article.source} • ${article.pubDate}")

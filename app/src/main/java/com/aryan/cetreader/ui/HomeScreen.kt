@@ -40,13 +40,11 @@ fun HomeScreen(
             )
         }
     ) { padding ->
-
         Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
         ) {
-
             FeaturedCard(article = articles.firstOrNull())
 
             LazyVerticalGrid(

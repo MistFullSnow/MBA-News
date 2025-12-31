@@ -12,27 +12,36 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.runtime.*
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    currentTheme: AppTheme,
+    onThemeChange: (AppTheme) -> Unit
+) {
+
+    var showThemeDialog by remember { mutableStateOf(false) }
 
     val bgColor = Color(0xFFF7F9FC)
 
-    Scaffold(
+    Scaffold(        
         topBar = {
-            TopAppBar(
-                title = { Text("CET Reader") },
-                actions = {
-                    IconButton(onClick = { /* settings later */ }) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = "Settings"
-                        )
+                TopAppBar(
+                    title = { Text("CET Reader") },
+                    actions = {
+                        IconButton(onClick = { showThemeDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Filled.MoreVert,
+                                contentDescription = "Settings"
+                            )
+                        }
                     }
-                }
-            )
+                )
         }
     ) { padding ->
         Column(
@@ -59,3 +68,13 @@ fun HomeScreen() {
         }
     }
 }
+    if (showThemeDialog) {
+            ThemeDialog(
+                selectedTheme = currentTheme,
+                onThemeSelected = {
+                    onThemeChange(it)
+                    showThemeDialog = false
+                },
+                onDismiss = { showThemeDialog = false }
+            )
+    }

@@ -1,6 +1,7 @@
 package com.aryan.cetreader.ui
 
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.aryan.cetreader.ui.theme.AppTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import com.aryan.cetreader.ui.model.Article
@@ -20,51 +21,41 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
 
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    LaunchedEffect(Unit) {
-        viewModel.loadArticles()
-    }
-    val articles = viewModel.articles.collectAsState().value
     currentTheme: AppTheme,
     onThemeChange: (AppTheme) -> Unit,
     viewModel: HomeViewModel = viewModel()
 ) {
-
-
     var showThemeDialog by remember { mutableStateOf(false) }
 
-    val bgColor = Color(0xFFF7F9FC)
+    LaunchedEffect(Unit) {
+        viewModel.loadArticles()
+    }
 
-    Scaffold(        
+    val articles = viewModel.articles.collectAsState().value
+
+    Scaffold(
         topBar = {
-                TopAppBar(
-                    title = { Text("CET Reader") },
-                    actions = {
-                        IconButton(onClick = { showThemeDialog = true }) {
-                            Icon(
-                                imageVector = Icons.Filled.MoreVert,
-                                contentDescription = "Settings"
-                            )
-                        }
+            TopAppBar(
+                title = { Text("CET Reader") },
+                actions = {
+                    IconButton(onClick = { showThemeDialog = true }) {
+                        Icon(Icons.Filled.MoreVert, contentDescription = "Menu")
                     }
-                )
+                }
+            )
         }
     ) { padding ->
+
         Column(
             modifier = Modifier
                 .padding(padding)
-                .background(bgColor)
                 .fillMaxSize()
         ) {
 
             FeaturedCard(article = articles.firstOrNull())
-
-
-            Spacer(modifier = Modifier.height(12.dp))
 
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
@@ -81,19 +72,18 @@ fun HomeScreen(
                         )
                     )
                 }
-
-                }
             }
         }
     }
 
     if (showThemeDialog) {
-            ThemeDialog(
-                selectedTheme = currentTheme,
-                onThemeSelected = {
-                    onThemeChange(it)
-                    showThemeDialog = false
-                },
-                onDismiss = { showThemeDialog = false }
-            )
+        ThemeDialog(
+            selectedTheme = currentTheme,
+            onThemeSelected = {
+                onThemeChange(it)
+                showThemeDialog = false
+            },
+            onDismiss = { showThemeDialog = false }
+        )
     }
+}

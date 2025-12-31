@@ -61,7 +61,8 @@ fun HomeScreen(
                 .fillMaxSize()
         ) {
 
-            FeaturedCard()
+            FeaturedCard(article = articles.firstOrNull())
+
 
             Spacer(modifier = Modifier.height(12.dp))
 

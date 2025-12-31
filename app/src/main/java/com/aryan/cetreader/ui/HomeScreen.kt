@@ -2,6 +2,7 @@ package com.aryan.cetreader.ui
 
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import com.aryan.cetreader.ui.model.Article
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -24,6 +25,10 @@ import androidx.compose.runtime.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    LaunchedEffect(Unit) {
+        viewModel.loadArticles()
+    }
+    val articles = viewModel.articles.collectAsState().value
     currentTheme: AppTheme,
     onThemeChange: (AppTheme) -> Unit,
     viewModel: HomeViewModel = viewModel()

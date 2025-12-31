@@ -1,6 +1,5 @@
 package com.aryan.cetreader.ui
 
-import com.aryan.cetreader.ui.model.Article
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -20,10 +19,12 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.aryan.cetreader.ui.model.Article
 
 @Composable
 fun FeaturedCard(article: Article?) {
 
+    if (article == null) return
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -36,9 +37,7 @@ fun FeaturedCard(article: Article?) {
 
     AnimatedVisibility(
         visible = true,
-        enter = fadeIn(tween(500)) + slideInVertically(
-            initialOffsetY = { -it / 4 }
-        )
+        enter = fadeIn(tween(500)) + slideInVertically { -it / 4 }
     ) {
         Card(
             modifier = Modifier
@@ -55,8 +54,7 @@ fun FeaturedCard(article: Article?) {
                 ) {
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 },
-            elevation = CardDefaults.cardElevation(6.dp),
-            shape = CardDefaults.shape
+            elevation = CardDefaults.cardElevation(6.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
 
@@ -71,7 +69,6 @@ fun FeaturedCard(article: Article?) {
 
                 Spacer(modifier = Modifier.height(4.dp))
                 Text("${article.source} • ${article.pubDate}")
-
             }
         }
     }

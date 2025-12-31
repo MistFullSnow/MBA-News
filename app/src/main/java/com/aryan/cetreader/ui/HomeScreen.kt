@@ -13,20 +13,20 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aryan.cetreader.ui.theme.AppTheme
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     currentTheme: AppTheme,
     onThemeChange: (AppTheme) -> Unit,
-    viewModel: HomeViewModel = viewModel()
+    homeViewModel: HomeViewModel = viewModel()
 ) {
     var showThemeDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        viewModel.loadArticles()
+        homeViewModel.loadArticles()
     }
 
-    val articles = viewModel.articles.collectAsState().value
+    val articles = homeViewModel.articles.collectAsState().value
 
     Scaffold(
         topBar = {

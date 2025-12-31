@@ -23,17 +23,33 @@ import androidx.compose.ui.graphics.graphicsLayer
 @Composable
 fun NewsCard(item: NewsItem) {
 
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val haptic = LocalHapticFeedback.current
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        label = "cardScale"
+    )
+
     AnimatedVisibility(
         visible = true,
-        enter = fadeIn(tween(400)) + slideInVertically(
-            initialOffsetY = { it / 6 }
-        )
+        enter = fadeIn() + slideInVertically()
     ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(140.dp)
-                .clickable { },
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null
+                ) {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                },
             elevation = CardDefaults.cardElevation(4.dp),
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
@@ -46,6 +62,7 @@ fun NewsCard(item: NewsItem) {
         }
     }
 }
+
 
 data class NewsItem(
     val title: String,

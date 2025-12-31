@@ -72,8 +72,16 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(fakeNews) {
-                    NewsCard(it)
+                items(articles.drop(1)) { article ->
+                    NewsCard(
+                        item = NewsItem(
+                            title = article.title,
+                            source = article.source,
+                            time = article.pubDate
+                        )
+                    )
+                }
+
                 }
             }
         }

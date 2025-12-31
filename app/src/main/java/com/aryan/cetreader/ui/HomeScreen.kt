@@ -1,5 +1,8 @@
 package com.aryan.cetreader.ui
 
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
+import com.aryan.cetreader.ui.model.Article
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -22,8 +25,10 @@ import androidx.compose.runtime.*
 @Composable
 fun HomeScreen(
     currentTheme: AppTheme,
-    onThemeChange: (AppTheme) -> Unit
+    onThemeChange: (AppTheme) -> Unit,
+    viewModel: HomeViewModel = viewModel()
 ) {
+
 
     var showThemeDialog by remember { mutableStateOf(false) }
 

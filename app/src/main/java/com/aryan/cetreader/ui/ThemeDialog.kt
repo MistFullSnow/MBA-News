@@ -1,9 +1,12 @@
 package com.aryan.cetreader.ui
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.window.Dialog
-import com.aryan.cetreader.ui.theme.AppTheme
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+
 
 @Composable
 fun ThemeDialog(

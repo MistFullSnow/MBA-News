@@ -15,22 +15,31 @@ import androidx.compose.animation.core.tween
 
 @Composable
 fun NewsCard(item: NewsItem) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(140.dp)
-            .clickable { },
-        elevation = CardDefaults.cardElevation(4.dp),
+
+    AnimatedVisibility(
+        visible = true,
+        enter = fadeIn(tween(400)) + slideInVertically(
+            initialOffsetY = { it / 6 }
+        )
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(item.source, fontWeight = FontWeight.SemiBold)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(item.title, fontWeight = FontWeight.Bold, maxLines = 3)
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(item.time)
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(140.dp)
+                .clickable { },
+            elevation = CardDefaults.cardElevation(4.dp),
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(item.source, fontWeight = FontWeight.SemiBold)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(item.title, fontWeight = FontWeight.Bold, maxLines = 3)
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(item.time)
+            }
         }
     }
 }
+
 data class NewsItem(
     val title: String,
     val source: String,

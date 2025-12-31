@@ -14,7 +14,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aryan.cetreader.ui.theme.AppTheme
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     currentTheme: AppTheme,

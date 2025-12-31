@@ -86,7 +86,7 @@ fun HomeScreen(
             }
         }
     }
-}
+
     if (showThemeDialog) {
             ThemeDialog(
                 selectedTheme = currentTheme,

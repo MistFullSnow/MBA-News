@@ -6,7 +6,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-
+import androidx.compose.ui.window.Dialog
+import com.aryan.cetreader.ui.theme.AppTheme
 
 @Composable
 fun ThemeDialog(
@@ -15,13 +16,13 @@ fun ThemeDialog(
     onDismiss: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
-        Card {
-            Column {
-                Text(
-                    "Choose Theme",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = androidx.compose.ui.Modifier.padding(16.dp)
-                )
+        Surface(
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+
+                Text("Choose Theme", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(12.dp))
 
                 ThemeOption("Light", AppTheme.LIGHT, selectedTheme, onThemeSelected)
                 ThemeOption("Dark", AppTheme.DARK, selectedTheme, onThemeSelected)
@@ -38,16 +39,17 @@ private fun ThemeOption(
     selectedTheme: AppTheme,
     onThemeSelected: (AppTheme) -> Unit
 ) {
-    ListItem(
-        headlineContent = { Text(label) },
-        leadingContent = {
-            RadioButton(
-                selected = theme == selectedTheme,
-                onClick = { onThemeSelected(theme) }
-            )
-        },
-        modifier = androidx.compose.ui.Modifier.clickable {
-            onThemeSelected(theme)
-        }
-    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onThemeSelected(theme) }
+            .padding(12.dp)
+    ) {
+        RadioButton(
+            selected = theme == selectedTheme,
+            onClick = { onThemeSelected(theme) }
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(label)
+    }
 }

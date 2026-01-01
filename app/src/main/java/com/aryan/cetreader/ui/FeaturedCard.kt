@@ -24,7 +24,10 @@ import androidx.compose.material3.MaterialTheme
 
 
 @Composable
-fun FeaturedCard(article: Article?) {
+fun FeaturedCard(
+    article: Article?,
+    onOpen: (String) -> Unit
+) {
 
     if (article == null) return
 
@@ -51,6 +54,7 @@ fun FeaturedCard(article: Article?) {
                     scaleY = scale
                 }
                 .clickable(
+                    onOpen(article.link)
                     interactionSource = interactionSource,
                     indication = null
                 ) {

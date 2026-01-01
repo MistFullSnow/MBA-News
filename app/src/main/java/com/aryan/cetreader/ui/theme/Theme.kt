@@ -27,7 +27,7 @@ private val DarkColors = darkColorScheme(
 private val AmoledColors = darkColorScheme(
     primary = Color.White,
     background = Color.Black,
-    surface = Color.Black,
+    surface = Color(0xFF121212), // subtle lift for cards
     onSurface = Color.White
 )
 

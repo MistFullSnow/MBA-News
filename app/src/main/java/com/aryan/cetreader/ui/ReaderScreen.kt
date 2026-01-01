@@ -42,48 +42,112 @@ fun ReaderScreen(
     )
 }
 private fun injectCleanerScript(webView: WebView?) {
+
     val script = """
         (function() {
-            const headline = document.querySelector('h1') ? document.querySelector('h1').innerText : '';
-            
-            let mainImage = '';
-            const imgElement = document.querySelector('._302Yc img, .story_content img');
-            if (imgElement) {
-                mainImage = `<img src="${'$'}{imgElement.src}" style="max-width:100%;border-radius:10px;margin-bottom:20px;">`;
-            }
+            console.log("Starting cleanup...");
 
-            let articleContent = document.querySelector('._s30J, .arttextxml');
-            let textHTML = '';
+            function findContent() {
+                const potentialSelectors = [
+                    '._s30J',
+                    '.arttextxml',
+                    '.story_content',
+                    '.article_content',
+                    'div[data-articlebody]',
+                    '.main-content'
+                ];
 
-            if (articleContent) {
-                articleContent.querySelectorAll('.vdo_embedd, iframe, script, style, ads').forEach(e => e.remove());
-                textHTML = articleContent.innerHTML;
-            } else {
-                document.querySelectorAll('p').forEach(p => {
-                    if (p.innerText.length > 40) {
-                        textHTML += `<p>${'$'}{p.innerText}</p>`;
+                for (let selector of potentialSelectors) {
+                    const el = document.querySelector(selector);
+                    if (el && el.innerText.length > 200) {
+                        console.log("Found content via selector:", selector);
+                        return el;
+                    }
+                }
+
+                let allDivs = document.querySelectorAll('div');
+                let maxPCount = 0;
+                let bestDiv = null;
+
+                allDivs.forEach(div => {
+                    let pCount = div.querySelectorAll('p').length;
+                    if (pCount > maxPCount) {
+                        maxPCount = pCount;
+                        bestDiv = div;
                     }
                 });
+
+                if (bestDiv && maxPCount > 3) {
+                    console.log("Found content via text density search");
+                    return bestDiv;
+                }
+
+                return null;
             }
 
-            document.body.innerHTML = '';
-            document.head.innerHTML = '';
+            let headline = "Article";
+            const h1 = document.querySelector('h1');
+            if (h1) headline = h1.innerText;
 
-            document.body.innerHTML = `
-                <div style="
-                    max-width: 760px;
-                    margin: auto;
-                    font-family: Georgia, serif;
-                    font-size: 19px;
-                    line-height: 1.65;
-                    padding: 24px;
-                    color: #111;
+            let mainImage = '';
+            const imgElement = document.querySelector('._302Yc img, .story_content img, figure img');
+            if (imgElement && imgElement.src) {
+                mainImage = `<img src="${'$'}{imgElement.src}" style="max-width:100%;border-radius:8px;margin-bottom:20px;">`;
+            }
+
+            const articleContent = findContent();
+            let textHTML = "<p>Could not auto-detect text. Please reload.</p>";
+
+            if (articleContent) {
+                const clone = articleContent.cloneNode(true);
+
+                const junkSelectors = ['.vdo_embedd', '.ad-container', '.twitter-tweet'];
+                junkSelectors.forEach(sel => {
+                    clone.querySelectorAll(sel).forEach(el => el.remove());
+                });
+
+                clone.querySelectorAll('script, style, iframe').forEach(el => el.remove());
+                textHTML = clone.innerHTML;
+            }
+
+            const darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            document.documentElement.innerHTML = '';
+            document.documentElement.innerHTML = '<body></body>';
+
+            const newPage = `
+                <head>
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>${'$'}{headline}</title>
+                </head>
+                <body style="
+                    margin:0;
+                    background-color:${'$'}{darkMode ? '#000' : '#f4f4f4'};
                 ">
-                    <h1 style="font-family: Arial; font-size: 30px;">${'$'}{headline}</h1>
-                    ${'$'}{mainImage}
-                    <div style="text-align: justify;">${'$'}{textHTML}</div>
-                </div>
+                    <div style="
+                        max-width:800px;
+                        margin:auto;
+                        font-family:Georgia, serif;
+                        font-size:18px;
+                        line-height:1.65;
+                        color:${'$'}{darkMode ? '#EEE' : '#222'};
+                        padding:20px;
+                        background-color:${'$'}{darkMode ? '#000' : '#fff'};
+                        min-height:100vh;
+                    ">
+                        <h1 style="font-family:Arial; font-size:28px; line-height:1.3;">
+                            ${'$'}{headline}
+                        </h1>
+                        <hr style="border:none;border-top:1px solid ${'$'}{darkMode ? '#222' : '#eee'};">
+                        ${'$'}{mainImage}
+                        <div>${'$'}{textHTML}</div>
+                    </div>
+                </body>
             `;
+
+            document.write(newPage);
+            document.close();
+            console.log("Cleanup complete.");
         })();
     """.trimIndent()
 

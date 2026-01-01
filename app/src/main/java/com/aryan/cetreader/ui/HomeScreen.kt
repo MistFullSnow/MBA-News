@@ -13,6 +13,15 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aryan.cetreader.ui.theme.AppTheme
 
+var readerUrl by remember { mutableStateOf<String?>(null) }
+if (readerUrl != null) {
+    ReaderScreen(
+        url = readerUrl!!,
+        onClose = { readerUrl = null }
+    )
+    return
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -45,7 +54,10 @@ fun HomeScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            FeaturedCard(article = articles.firstOrNull())
+            FeaturedCard(
+                article = articles.firstOrNull(),
+                onOpen = { readerUrl = it }
+            )
 
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
@@ -58,7 +70,9 @@ fun HomeScreen(
                         item = NewsItem(
                             title = article.title,
                             source = article.source,
-                            time = article.pubDate
+                            time = article.pubDate,
+                            onOpen = { readerUrl = article.link }
+
                         )
                     )
                 }

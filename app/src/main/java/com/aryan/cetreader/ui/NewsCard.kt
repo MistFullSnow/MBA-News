@@ -36,12 +36,12 @@ fun NewsCard(item: NewsItem) {
 
     AnimatedVisibility(
         visible = true,
-        enter = fadeIn() + slideInVertically()
+        enter = fadeIn(tween(300)) + slideInVertically { it / 6 }
     ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(140.dp)
+                .height(130.dp) // slightly shorter
                 .graphicsLayer {
                     scaleX = scale
                     scaleY = scale
@@ -52,18 +52,36 @@ fun NewsCard(item: NewsItem) {
                 ) {
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 },
-            elevation = CardDefaults.cardElevation(4.dp),
+            elevation = CardDefaults.cardElevation(3.dp)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
-                Text(item.source, fontWeight = FontWeight.SemiBold)
+
+                Text(
+                    item.source,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = MaterialTheme.typography.labelSmall.fontSize
+                )
+
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(item.title, fontWeight = FontWeight.Bold, maxLines = 3)
+
+                Text(
+                    item.title,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 3,
+                    fontSize = MaterialTheme.typography.bodyMedium.fontSize
+                )
+
                 Spacer(modifier = Modifier.height(6.dp))
-                Text(item.time)
+
+                Text(
+                    item.time,
+                    fontSize = MaterialTheme.typography.labelSmall.fontSize
+                )
             }
         }
     }
 }
+
 
 
 data class NewsItem(
@@ -72,11 +90,3 @@ data class NewsItem(
     val time: String
 )
 
-val fakeNews = listOf(
-    NewsItem("India launches indigenous Pralay missiles", "NDTV", "1h ago"),
-    NewsItem("Thrown out of moving car at 90 kmph", "Hindustan Times", "2h ago"),
-    NewsItem("UP home welcomes same-sex bride", "India Today", "3h ago"),
-    NewsItem("Bangladesh ex-PM laid to rest", "NDTV World", "4h ago"),
-    NewsItem("Tech layoffs slow down globally", "Economic Times", "5h ago"),
-    NewsItem("New space policy announced", "The Hindu", "6h ago")
-)

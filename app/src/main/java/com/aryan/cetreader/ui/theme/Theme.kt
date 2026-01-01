@@ -8,35 +8,38 @@ enum class AppTheme {
     LIGHT, DARK, AMOLED
 }
 
+private val LightColors = lightColorScheme(
+    primary = Color.Black,
+    onPrimary = Color.White,
+    background = Color(0xFFF9FAFB),
+    surface = Color.White,
+    onSurface = Color.Black
+)
+
+private val DarkColors = darkColorScheme(
+    primary = Color.White,
+    onPrimary = Color.Black,
+    background = Color(0xFF0D1117),
+    surface = Color(0xFF161B22),
+    onSurface = Color.White
+)
+
+private val AmoledColors = darkColorScheme(
+    primary = Color.White,
+    background = Color.Black,
+    surface = Color.Black,
+    onSurface = Color.White
+)
+
 @Composable
 fun CETReaderTheme(
     theme: AppTheme,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when (theme) {
-        AppTheme.LIGHT -> lightColorScheme(
-            background = LightBg,
-            surface = LightCard,
-            onSurface = LightText,
-            onBackground = LightText,
-            primary = Color(0xFF2563EB)
-        )
-
-        AppTheme.DARK -> darkColorScheme(
-            background = DarkBg,
-            surface = DarkCard,
-            onSurface = DarkText,
-            onBackground = DarkText,
-            primary = Color(0xFF38BDF8)
-        )
-
-        AppTheme.AMOLED -> darkColorScheme(
-            background = AmoledBg,
-            surface = AmoledCard,
-            onSurface = AmoledText,
-            onBackground = AmoledText,
-            primary = Color(0xFF22D3EE)
-        )
+        AppTheme.LIGHT -> LightColors
+        AppTheme.DARK -> DarkColors
+        AppTheme.AMOLED -> AmoledColors
     }
 
     MaterialTheme(

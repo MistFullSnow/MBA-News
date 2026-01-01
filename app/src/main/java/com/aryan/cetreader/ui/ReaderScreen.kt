@@ -15,6 +15,64 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 
 @SuppressLint("SetJavaScriptEnabled")
+
+private const val CLEAN_READER_JS = """
+(function() {
+    const headline = document.querySelector('h1')
+        ? document.querySelector('h1').innerText
+        : 'No Headline Found';
+
+    let mainImage = '';
+    const imgElement = document.querySelector('._302Yc img, .story_content img');
+    if (imgElement) {
+        mainImage = `<img src="${'$'}{imgElement.src}" style="max-width:100%;height:auto;border-radius:8px;margin-bottom:20px;">`;
+    }
+
+    let articleContent = document.querySelector('._s30J, .arttextxml');
+    let textHTML = '';
+
+    if (articleContent) {
+        const unwantedVideos = articleContent.querySelectorAll('.vdo_embedd');
+        unwantedVideos.forEach(v => v.remove());
+        textHTML = articleContent.innerHTML;
+    } else {
+        document.querySelectorAll('p').forEach(p => {
+            if (p.innerText.length > 40) {
+                textHTML += `<p>${'$'}{p.innerText}</p>`;
+            }
+        });
+    }
+
+    document.body.innerHTML = '';
+    document.head.innerHTML = '';
+
+    const newPage = `
+        <div style="
+            max-width:800px;
+            margin:0 auto;
+            font-family:Georgia,'Times New Roman',serif;
+            font-size:20px;
+            line-height:1.6;
+            color:#333;
+            padding:40px 20px;
+            background-color:#f9f9f9;
+        ">
+            <h1 style="font-family:Arial,sans-serif;font-size:36px;margin-bottom:20px;line-height:1.2;">
+                ${'$'}{headline}
+            </h1>
+            <hr style="border:0;border-top:1px solid #ccc;margin:20px 0;">
+            ${'$'}{mainImage}
+            <div style="text-align:justify;">
+                ${'$'}{textHTML}
+            </div>
+        </div>
+    `;
+
+    document.body.style.backgroundColor = '#f9f9f9';
+    document.body.innerHTML = newPage;
+})();
+"""
+
 @Composable
 fun ReaderScreen(
     url: String,
@@ -69,46 +127,13 @@ fun ReaderScreen(
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
                 
-                        val cleanCss = """
-                            javascript:(function() {
-                                var style = document.createElement('style');
-                                style.innerHTML = `
-                                    header, footer, nav,
-                                    iframe,
-                                    .header, .footer,
-                                    .ad, .ads, .advertisement,
-                                    .sticky, .banner,
-                                    .social-share,
-                                    .paywall,
-                                    .subscribe,
-                                    .promo {
-                                        display: none !important;
-                                    }
-                
-                                    body {
-                                        margin: 16px !important;
-                                        max-width: 100% !important;
-                                    }
-                
-                                    article, main, .content, .article {
-                                        max-width: 680px;
-                                        margin: auto;
-                                        line-height: 1.6;
-                                        font-size: 17px;
-                                    }
-                
-                                    img {
-                                        max-width: 100%;
-                                        height: auto;
-                                    }
-                                `;
-                                document.head.appendChild(style);
-                            })();
-                        """.trimIndent()
-                
-                        view?.evaluateJavascript(cleanCss, null)
+                        view?.evaluateJavascript(
+                            "javascript:$CLEAN_READER_JS",
+                            null
+                        )
                     }
                 }
+
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 settings.loadWithOverviewMode = true

@@ -22,10 +22,19 @@ fun ReaderScreen(
                 settings.loadWithOverviewMode = true
 
                 webViewClient = object : WebViewClient() {
+
+                    private var injected = false
+                
                     override fun onPageFinished(view: WebView?, url: String?) {
-                        injectCleanerScript(view)
+                        if (injected) return
+                        injected = true
+                
+                        view?.postDelayed({
+                            injectCleanerScript(view)
+                        }, 3500) // ⏱ 3.5 seconds delay
                     }
                 }
+
 
                 loadUrl(url)
             }

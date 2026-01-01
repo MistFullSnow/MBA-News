@@ -16,11 +16,12 @@ import com.aryan.cetreader.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@Composable
 fun HomeScreen(
-    currentTheme: AppTheme,
-    onThemeChange: (AppTheme) -> Unit,
     section: NewsSection,
     onBack: () -> Unit,
+    currentTheme: AppTheme,
+    onThemeChange: (AppTheme) -> Unit,
     viewModel: HomeViewModel = viewModel()
 ) {
     var showThemeDialog by remember { mutableStateOf(false) }

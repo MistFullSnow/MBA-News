@@ -20,6 +20,8 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.aryan.cetreader.ui.model.Article
+import androidx.compose.material3.MaterialTheme
+
 
 @Composable
 fun FeaturedCard(article: Article?) {

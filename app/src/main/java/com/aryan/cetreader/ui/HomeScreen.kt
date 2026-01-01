@@ -19,6 +19,8 @@ import com.aryan.cetreader.ui.theme.AppTheme
 fun HomeScreen(
     currentTheme: AppTheme,
     onThemeChange: (AppTheme) -> Unit,
+    section: NewsSection,
+    onBack: () -> Unit,
     viewModel: HomeViewModel = viewModel()
 ) {
     var showThemeDialog by remember { mutableStateOf(false) }

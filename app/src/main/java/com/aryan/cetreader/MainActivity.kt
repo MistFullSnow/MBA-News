@@ -17,25 +17,36 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-
+        
             var currentTheme by remember { mutableStateOf(AppTheme.LIGHT) }
-
+            var selectedSection by remember { mutableStateOf<NewsSection?>(null) }
+        
             LaunchedEffect(Unit) {
                 ThemePreferences.getTheme(this@MainActivity)
                     .collect { currentTheme = it }
             }
-
+        
             CETReaderTheme(theme = currentTheme) {
-                HomeScreen(
-                    currentTheme = currentTheme,
-                    onThemeChange = { theme ->
-                        currentTheme = theme
-                        lifecycleScope.launch {
-                            ThemePreferences.saveTheme(this@MainActivity, theme)
-                        }
-                    }
-                )
+        
+                if (selectedSection == null) {
+                    SectionScreen(
+                        onSectionSelected = { selectedSection = it }
+                    )
+                } else {
+                    HomeScreen(
+                        currentTheme = currentTheme,
+                        onThemeChange = { theme ->
+                            currentTheme = theme
+                            lifecycleScope.launch {
+                                ThemePreferences.saveTheme(this@MainActivity, theme)
+                            }
+                        },
+                        section = selectedSection!!,
+                        onBack = { selectedSection = null }
+                    )
+                }
             }
         }
+
     }
 }

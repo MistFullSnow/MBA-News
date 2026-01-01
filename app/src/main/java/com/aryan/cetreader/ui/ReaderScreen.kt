@@ -6,6 +6,8 @@ import android.webkit.WebViewClient
 import androidx.compose.runtime.*
 import androidx.compose.ui.viewinterop.AndroidView
 
+val isDarkReader = theme == AppTheme.DARK || theme == AppTheme.AMOLED
+
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun ReaderScreen(

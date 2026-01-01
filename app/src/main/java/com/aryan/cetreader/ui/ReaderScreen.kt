@@ -49,84 +49,123 @@ fun ReaderScreen(
 fun buildCleanReaderScript(isDark: Boolean): String {
     return """
         (function() {
+            // PASS KOTLIN STATE TO JS
+            const isDark = $isDark;
 
-            const isDark = ${isDark};
-
+            // 1. ROBUST WAITER
             function waitUntilReady(callback) {
                 let attempts = 0;
+                // Check every 200ms
                 const interval = setInterval(() => {
+                    // Look for substantial text
                     const hasText = document.querySelectorAll('p').length > 5;
                     const hasTitle = document.querySelector('h1');
+                    
                     if (hasText && hasTitle) {
                         clearInterval(interval);
                         callback();
                     }
+                    
                     attempts++;
-                    if (attempts > 20) {
+                    // Stop checking after 6 seconds (30 attempts) to save battery
+                    if (attempts > 30) {
                         clearInterval(interval);
-                        console.log("Content not detected");
+                        console.log("Timeout waiting for content");
+                        // Try to clean anyway with what we have
+                        callback();
                     }
-                }, 300);
+                }, 200);
             }
 
+            // 2. THE CLEANER LOGIC
             function runCleaner() {
+                console.log("Starting cleanup...");
 
-                console.log("Starting cleanup");
+                // Theme Colors
+                const bgColor = isDark ? '#121212' : '#f4f4f4'; // #000 is too harsh for OLED, #121212 is standard dark
+                const cardBg = isDark ? '#1e1e1e' : '#fff';
+                const textCol = isDark ? '#e0e0e0' : '#222';
+                const hrCol = isDark ? '#333' : '#eee';
 
-                const bgColor = isDark ? '#000' : '#f4f4f4';
-                const cardBg = isDark ? '#000' : '#fff';
-                const textCol = isDark ? '#eaeaea' : '#222';
-                const hrCol = isDark ? '#222' : '#eee';
-
+                // SMART SELECTOR (The Heuristic Fallback)
                 function findContent() {
+                    // A. Try specific known classes (TOI and others)
                     const selectors = [
-                        '._s30J',
-                        '.arttextxml',
-                        '.story_content',
-                        '.article_content',
-                        'div[data-articlebody]'
+                        '._s30J', '.arttextxml', '.story_content', 
+                        '.article_content', 'div[data-articlebody]', 
+                        'article', '.main-content'
                     ];
+                    
                     for (let s of selectors) {
                         const el = document.querySelector(s);
-                        if (el && el.innerText.length > 200) return el;
+                        if (el && el.innerText.length > 300) return el;
                     }
+
+                    // B. Fallback: Find the <div> with the most <p> tags
+                    let allDivs = document.querySelectorAll('div');
+                    let maxP = 0;
+                    let bestDiv = null;
+                    allDivs.forEach(div => {
+                        let pCount = div.querySelectorAll('p').length;
+                        if(pCount > maxP) {
+                            maxP = pCount;
+                            bestDiv = div;
+                        }
+                    });
+                    
+                    if(maxP > 3) return bestDiv;
                     return null;
                 }
 
+                // Gather Data
                 const headline = document.querySelector('h1')?.innerText || 'Article';
-                const img = document.querySelector('figure img');
-                const imageHTML = img ? `<img src="${'$'}{img.src}" style="max-width:100%;border-radius:8px;margin-bottom:20px;">` : '';
+                
+                // Better Image Selector
+                const imgEl = document.querySelector('._302Yc img, .story_content img, figure img, article img');
+                const imageHTML = imgEl && imgEl.src ? `<img src="${'$'}{imgEl.src}" style="max-width:100%; height:auto; border-radius:8px; margin-bottom:20px; display:block;">` : '';
 
                 const content = findContent();
-                if (!content) return;
+                if (!content) {
+                    console.log("No content found to clean.");
+                    return; 
+                }
 
+                // SURGERY: Remove junk from the content node
                 const clone = content.cloneNode(true);
-                clone.querySelectorAll('script, iframe, style, .vdo_embedd, .ad-container').forEach(e => e.remove());
+                clone.querySelectorAll('script, iframe, style, .vdo_embedd, .ad-container, .twitter-tweet').forEach(e => e.remove());
 
+                // 3. NUCLEAR SWAP
                 document.documentElement.innerHTML = `
                     <head>
                         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <style>
+                            body { font-family: 'Georgia', serif; transition: background 0.3s; }
+                            img { max-width: 100%; height: auto; }
+                            p { font-size: 18px; line-height: 1.6; margin-bottom: 1.2em; }
+                            a { color: ${'$'}{isDark ? '#8ab4f8' : '#1a0dab'}; text-decoration: none; }
+                        </style>
                     </head>
-                    <body style="margin:0;background:${'$'}{bgColor};">
+                    <body style="margin:0; background:${'$'}{bgColor};">
                         <div style="
-                            max-width:800px;
-                            margin:auto;
-                            padding:20px;
-                            font-family:Georgia, serif;
-                            font-size:18px;
-                            line-height:1.6;
-                            color:${'$'}{textCol};
-                            background:${'$'}{cardBg};
+                            max-width: 800px;
+                            margin: auto;
+                            padding: 24px 20px;
+                            color: ${'$'}{textCol};
+                            background: ${'$'}{cardBg};
+                            min-height: 100vh;
                         ">
-                            <h1>${'$'}{headline}</h1>
-                            <hr style="border-top:1px solid ${'$'}{hrCol}">
+                            <h1 style="font-family: sans-serif; font-size: 28px; line-height: 1.3; margin-bottom: 16px;">${'$'}{headline}</h1>
+                            <hr style="border: 0; border-top: 1px solid ${'$'}{hrCol}; margin: 20px 0;">
                             ${'$'}{imageHTML}
-                            ${'$'}{clone.innerHTML}
+                            <div id="clean-content">
+                                ${'$'}{clone.innerHTML}
+                            </div>
                         </div>
                     </body>
                 `;
             }
 
+            // Start the process
             waitUntilReady(runCleaner);
 
         })();

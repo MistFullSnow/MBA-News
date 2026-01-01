@@ -27,15 +27,24 @@ if (readerUrl != null) {
 fun HomeScreen(
     currentTheme: AppTheme,
     onThemeChange: (AppTheme) -> Unit,
-    homeViewModel: HomeViewModel = viewModel()
+    viewModel: HomeViewModel = viewModel()
 ) {
     var showThemeDialog by remember { mutableStateOf(false) }
+    var readerUrl by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
-        homeViewModel.loadArticles()
+        viewModel.loadArticles()
     }
 
-    val articles = homeViewModel.articles.collectAsState().value
+    val articles = viewModel.articles.collectAsState().value
+
+    if (readerUrl != null) {
+        ReaderScreen(
+            url = readerUrl!!,
+            onClose = { readerUrl = null }
+        )
+        return
+    }
 
     Scaffold(
         topBar = {
@@ -49,11 +58,13 @@ fun HomeScreen(
             )
         }
     ) { padding ->
+
         Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
         ) {
+
             FeaturedCard(
                 article = articles.firstOrNull(),
                 onOpen = { readerUrl = it }
@@ -70,10 +81,9 @@ fun HomeScreen(
                         item = NewsItem(
                             title = article.title,
                             source = article.source,
-                            time = article.pubDate,
-                            onOpen = { readerUrl = article.link }
-
-                        )
+                            time = article.pubDate
+                        ),
+                        onOpen = { readerUrl = article.link }
                     )
                 }
             }

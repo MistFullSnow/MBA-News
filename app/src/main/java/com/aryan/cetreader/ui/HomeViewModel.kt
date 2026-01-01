@@ -16,13 +16,9 @@ class HomeViewModel : ViewModel() {
     private val _articles = MutableStateFlow<List<Article>>(emptyList())
     val articles: StateFlow<List<Article>> = _articles
 
-    fun loadArticles() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val list = repository.fetchRss(
-                url = "https://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms",
-                source = "Times of India"
-            )
-            _articles.value = list.take(10)
-        }
+    fun loadArticles(rssUrl: String) {
+    viewModelScope.launch {
+        val data = repository.fetchArticles(rssUrl)
+        _articles.emit(data)
     }
 }

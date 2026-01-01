@@ -26,14 +26,19 @@ fun ReaderScreen(
     // 🔹 Enter immersive mode
     LaunchedEffect(Unit) {
         val window = (view.context as android.app.Activity).window
+    
+        window.attributes.layoutInDisplayCutoutMode =
+            android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+    
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
+    
         WindowInsetsControllerCompat(window, view).apply {
             hide(WindowInsetsCompat.Type.systemBars())
             systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
     }
+
 
     // 🔹 Restore system bars on exit
     DisposableEffect(Unit) {
@@ -59,7 +64,51 @@ fun ReaderScreen(
         modifier = Modifier.fillMaxSize(),
         factory = { context ->
             WebView(context).apply {
-                webViewClient = WebViewClient()
+
+                webViewClient = object : WebViewClient() {
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        super.onPageFinished(view, url)
+                
+                        val cleanCss = """
+                            javascript:(function() {
+                                var style = document.createElement('style');
+                                style.innerHTML = `
+                                    header, footer, nav,
+                                    iframe,
+                                    .header, .footer,
+                                    .ad, .ads, .advertisement,
+                                    .sticky, .banner,
+                                    .social-share,
+                                    .paywall,
+                                    .subscribe,
+                                    .promo {
+                                        display: none !important;
+                                    }
+                
+                                    body {
+                                        margin: 16px !important;
+                                        max-width: 100% !important;
+                                    }
+                
+                                    article, main, .content, .article {
+                                        max-width: 680px;
+                                        margin: auto;
+                                        line-height: 1.6;
+                                        font-size: 17px;
+                                    }
+                
+                                    img {
+                                        max-width: 100%;
+                                        height: auto;
+                                    }
+                                `;
+                                document.head.appendChild(style);
+                            })();
+                        """.trimIndent()
+                
+                        view?.evaluateJavascript(cleanCss, null)
+                    }
+                }
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 settings.loadWithOverviewMode = true

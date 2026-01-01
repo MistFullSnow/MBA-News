@@ -43,7 +43,6 @@ class RssParser {
                         articles.add(
                             Article(
                                 title = title,
-                                description = description,
                                 link = link,
                                 source = sourceName,
                                 pubDate = pubDate

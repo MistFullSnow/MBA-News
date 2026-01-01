@@ -17,8 +17,15 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.setDecorFitsSystemWindows(false)
 
         setContent {
+            DisposableEffect(Unit) {
+                window.insetsController?.hide(
+                    android.view.WindowInsets.Type.systemBars()
+                )
+                onDispose { }
+            }
 
             var currentTheme by remember { mutableStateOf(AppTheme.LIGHT) }
         

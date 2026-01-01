@@ -9,9 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -20,15 +18,12 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.aryan.cetreader.ui.model.Article
-import androidx.compose.material3.MaterialTheme
-
 
 @Composable
 fun FeaturedCard(
     article: Article?,
     onOpen: (String) -> Unit
 ) {
-
     if (article == null) return
 
     val interactionSource = remember { MutableInteractionSource() }
@@ -42,7 +37,7 @@ fun FeaturedCard(
 
     AnimatedVisibility(
         visible = true,
-        enter = fadeIn(tween(500)) + slideInVertically { -it / 4 }
+        enter = fadeIn(tween(300)) + slideInVertically { -it / 4 }
     ) {
         Card(
             modifier = Modifier
@@ -54,11 +49,11 @@ fun FeaturedCard(
                     scaleY = scale
                 }
                 .clickable(
-                    onOpen(article.link)
                     interactionSource = interactionSource,
                     indication = null
                 ) {
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onOpen(article.link)
                 },
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
@@ -66,16 +61,9 @@ fun FeaturedCard(
             elevation = CardDefaults.cardElevation(3.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-
                 Text("Featured", fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(6.dp))
-
-                Text(
-                    article.title,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2
-                )
-
+                Text(article.title, fontWeight = FontWeight.Bold, maxLines = 2)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text("${article.source} • ${article.pubDate}")
             }

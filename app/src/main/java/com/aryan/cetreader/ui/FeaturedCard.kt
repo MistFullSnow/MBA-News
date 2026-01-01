@@ -54,7 +54,10 @@ fun FeaturedCard(article: Article?) {
                 ) {
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 },
-            elevation = CardDefaults.cardElevation(6.dp)
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+            ),
+            elevation = CardDefaults.cardElevation(3.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
 

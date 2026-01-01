@@ -41,7 +41,7 @@ fun NewsCard(item: NewsItem) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(130.dp) // slightly shorter
+                .height(130.dp)
                 .graphicsLayer {
                     scaleX = scale
                     scaleY = scale
@@ -52,6 +52,9 @@ fun NewsCard(item: NewsItem) {
                 ) {
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 },
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+            ),
             elevation = CardDefaults.cardElevation(3.dp)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {

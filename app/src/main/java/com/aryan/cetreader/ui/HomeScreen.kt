@@ -13,14 +13,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aryan.cetreader.ui.theme.AppTheme
 
-var readerUrl by remember { mutableStateOf<String?>(null) }
-if (readerUrl != null) {
-    ReaderScreen(
-        url = readerUrl!!,
-        onClose = { readerUrl = null }
-    )
-    return
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

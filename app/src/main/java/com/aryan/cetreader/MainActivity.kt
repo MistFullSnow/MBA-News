@@ -22,10 +22,6 @@ class MainActivity : ComponentActivity() {
 
             var currentTheme by remember { mutableStateOf(AppTheme.LIGHT) }
         
-            var selectedSection: NewsSection? by remember {
-                mutableStateOf(null)
-            }
-        
             LaunchedEffect(Unit) {
                 ThemePreferences.getTheme(this@MainActivity)
                     .collect { currentTheme = it }
@@ -33,27 +29,43 @@ class MainActivity : ComponentActivity() {
         
             CETReaderTheme(theme = currentTheme) {
         
-                if (selectedSection == null) {
-                    SectionScreen(
-                        onSectionSelected = { section ->
-                            selectedSection = section
+                val navController = rememberNavController()
+        
+                NavHost(
+                    navController = navController,
+                    startDestination = "sections"
+                ) {
+        
+                    composable("sections") {
+                        SectionScreen { section ->
+                            navController.navigate("news/${section.name}")
                         }
-                    )
-                } else {
-                    HomeScreen(
-                        currentTheme = currentTheme,
-                        onThemeChange = { theme ->
-                            currentTheme = theme
-                            lifecycleScope.launch {
-                                ThemePreferences.saveTheme(this@MainActivity, theme)
+                    }
+        
+                    composable("news/{section}") { backStack ->
+                        val section = NewsSection.valueOf(
+                            backStack.arguments?.getString("section")!!
+                        )
+        
+                        HomeScreen(
+                            section = section,
+                            onBack = { navController.popBackStack() },
+                            currentTheme = currentTheme,
+                            onThemeChange = { theme ->
+                                currentTheme = theme
+                                lifecycleScope.launch {
+                                    ThemePreferences.saveTheme(
+                                        this@MainActivity,
+                                        theme
+                                    )
+                                }
                             }
-                        },
-                        section = selectedSection!!,
-                        onBack = { selectedSection = null }
-                    )
+                        )
+                    }
                 }
             }
         }
+
 
 
     }

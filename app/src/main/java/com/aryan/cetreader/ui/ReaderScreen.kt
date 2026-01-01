@@ -10,6 +10,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 @Composable
 fun ReaderScreen(
     url: String,
+    theme: AppTheme,
     onClose: () -> Unit
 ) {
     AndroidView(

@@ -1,5 +1,7 @@
 package com.aryan.cetreader
 
+import com.aryan.cetreader.ui.NewsSection
+import com.aryan.cetreader.ui.SectionScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,9 +19,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-        
+
             var currentTheme by remember { mutableStateOf(AppTheme.LIGHT) }
-            var selectedSection by remember { mutableStateOf<NewsSection?>(null) }
+        
+            var selectedSection: NewsSection? by remember {
+                mutableStateOf(null)
+            }
         
             LaunchedEffect(Unit) {
                 ThemePreferences.getTheme(this@MainActivity)
@@ -30,7 +35,9 @@ class MainActivity : ComponentActivity() {
         
                 if (selectedSection == null) {
                     SectionScreen(
-                        onSectionSelected = { selectedSection = it }
+                        onSectionSelected = { section ->
+                            selectedSection = section
+                        }
                     )
                 } else {
                     HomeScreen(
@@ -47,6 +54,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
 
     }
 }

@@ -1,12 +1,13 @@
 package com.aryan.cetreader.ui
 
 import android.annotation.SuppressLint
+import android.os.Handler
+import android.os.Looper
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.viewinterop.AndroidView
-
-val isDarkReader = theme == AppTheme.DARK || theme == AppTheme.AMOLED
+import com.aryan.cetreader.ui.theme.AppTheme
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
@@ -15,9 +16,12 @@ fun ReaderScreen(
     theme: AppTheme,
     onClose: () -> Unit
 ) {
+    val isDarkReader = theme == AppTheme.DARK || theme == AppTheme.AMOLED
+
     AndroidView(
         factory = { context ->
             WebView(context).apply {
+
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 settings.loadsImagesAutomatically = true
@@ -26,33 +30,40 @@ fun ReaderScreen(
 
                 webViewClient = object : WebViewClient() {
 
-                    private var injected = false
-                
                     override fun onPageFinished(view: WebView?, url: String?) {
                         Handler(Looper.getMainLooper()).postDelayed({
-                    
-                            val js = buildCleanReaderScript(isDarkReader)
-                            webView.evaluateJavascript(js, null)
-                    
-                        }, 3500) // 3.5 seconds delay (as you requested)
+
+                            injectCleanerScript(
+                                webView = view,
+                                isDark = isDarkReader
+                            )
+
+                        }, 3500) // ⏱ 3.5 sec delay as YOU requested
                     }
-
                 }
-
 
                 loadUrl(url)
             }
         }
     )
 }
-private fun injectCleanerScript(webView: WebView?) {
 
+private fun injectCleanerScript(
+    webView: WebView?,
+    isDark: Boolean
+) {
     val script = """
         (function() {
-            console.log("Starting cleanup...");
+
+            const isDark = $isDark;
+
+            const bgColor  = isDark ? '#000000' : '#f4f4f4';
+            const cardBg  = isDark ? '#000000' : '#ffffff';
+            const textCol = isDark ? '#eaeaea' : '#222';
+            const hrCol   = isDark ? '#222' : '#eee';
 
             function findContent() {
-                const potentialSelectors = [
+                const selectors = [
                     '._s30J',
                     '.arttextxml',
                     '.story_content',
@@ -61,97 +72,64 @@ private fun injectCleanerScript(webView: WebView?) {
                     '.main-content'
                 ];
 
-                for (let selector of potentialSelectors) {
-                    const el = document.querySelector(selector);
-                    if (el && el.innerText.length > 200) {
-                        console.log("Found content via selector:", selector);
-                        return el;
-                    }
+                for (let s of selectors) {
+                    const el = document.querySelector(s);
+                    if (el && el.innerText.length > 200) return el;
                 }
 
-                let allDivs = document.querySelectorAll('div');
-                let maxPCount = 0;
-                let bestDiv = null;
-
-                allDivs.forEach(div => {
-                    let pCount = div.querySelectorAll('p').length;
-                    if (pCount > maxPCount) {
-                        maxPCount = pCount;
-                        bestDiv = div;
+                let best = null;
+                let maxP = 0;
+                document.querySelectorAll('div').forEach(d => {
+                    const p = d.querySelectorAll('p').length;
+                    if (p > maxP) {
+                        maxP = p;
+                        best = d;
                     }
                 });
-
-                if (bestDiv && maxPCount > 3) {
-                    console.log("Found content via text density search");
-                    return bestDiv;
-                }
-
-                return null;
+                return maxP > 3 ? best : null;
             }
 
-            let headline = "Article";
-            const h1 = document.querySelector('h1');
-            if (h1) headline = h1.innerText;
+            let headline = document.querySelector('h1')?.innerText || 'Article';
 
             let mainImage = '';
-            const imgElement = document.querySelector('._302Yc img, .story_content img, figure img');
-            if (imgElement && imgElement.src) {
-                mainImage = `<img src="${'$'}{imgElement.src}" style="max-width:100%;border-radius:8px;margin-bottom:20px;">`;
+            const img = document.querySelector('figure img, .story_content img');
+            if (img?.src) {
+                mainImage = `<img src="${'$'}{img.src}" style="max-width:100%;border-radius:8px;margin-bottom:20px;">`;
             }
 
-            const articleContent = findContent();
-            let textHTML = "<p>Could not auto-detect text. Please reload.</p>";
+            const content = findContent();
+            let bodyHtml = '<p>Unable to extract article.</p>';
 
-            if (articleContent) {
-                const clone = articleContent.cloneNode(true);
-
-                const junkSelectors = ['.vdo_embedd', '.ad-container', '.twitter-tweet'];
-                junkSelectors.forEach(sel => {
-                    clone.querySelectorAll(sel).forEach(el => el.remove());
-                });
-
-                clone.querySelectorAll('script, style, iframe').forEach(el => el.remove());
-                textHTML = clone.innerHTML;
+            if (content) {
+                const clone = content.cloneNode(true);
+                clone.querySelectorAll('script, style, iframe, .vdo_embedd, .ad-container').forEach(e => e.remove());
+                bodyHtml = clone.innerHTML;
             }
-
-            const darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
             document.documentElement.innerHTML = '';
-            document.documentElement.innerHTML = '<body></body>';
-
-            const newPage = `
+            document.documentElement.innerHTML = `
                 <head>
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>${'$'}{headline}</title>
                 </head>
-                <body style="
-                    margin:0;
-                    background-color:${'$'}{darkMode ? '#000' : '#f4f4f4'};
-                ">
+                <body style="margin:0;background:${'$'}{bgColor};">
                     <div style="
                         max-width:800px;
                         margin:auto;
-                        font-family:Georgia, serif;
-                        font-size:18px;
-                        line-height:1.65;
-                        color:${'$'}{darkMode ? '#EEE' : '#222'};
                         padding:20px;
-                        background-color:${'$'}{darkMode ? '#000' : '#fff'};
-                        min-height:100vh;
-                    ">
-                        <h1 style="font-family:Arial; font-size:28px; line-height:1.3;">
-                            ${'$'}{headline}
-                        </h1>
-                        <hr style="border:none;border-top:1px solid ${'$'}{darkMode ? '#222' : '#eee'};">
+                        background:${'$'}{cardBg};
+                        color:${'$'}{textCol};
+                        font-family:Georgia,serif;
+                        line-height:1.6;
+                        min-height:100vh;">
+                        <h1 style="font-family:Arial;">${'$'}{headline}</h1>
+                        <hr style="border-top:1px solid ${'$'}{hrCol};">
                         ${'$'}{mainImage}
-                        <div>${'$'}{textHTML}</div>
+                        ${'$'}{bodyHtml}
                     </div>
                 </body>
             `;
 
-            document.write(newPage);
-            document.close();
-            console.log("Cleanup complete.");
         })();
     """.trimIndent()
 

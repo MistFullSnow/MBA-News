@@ -36,6 +36,7 @@ fun HomeScreen(
     if (readerUrl != null) {
         ReaderScreen(
             url = readerUrl!!,
+            theme = currentTheme,
             onClose = { readerUrl = null }
         )
         return

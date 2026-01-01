@@ -16,7 +16,7 @@ fun ReaderScreen(
     theme: AppTheme,
     onClose: () -> Unit
 ) {
-    val isDarkReader = theme == AppTheme.DARK || theme == AppTheme.AMOLED
+    val isDark = theme == AppTheme.DARK || theme == AppTheme.AMOLED
 
     AndroidView(
         factory = { context ->
@@ -32,13 +32,11 @@ fun ReaderScreen(
 
                     override fun onPageFinished(view: WebView?, url: String?) {
                         Handler(Looper.getMainLooper()).postDelayed({
-
-                            injectCleanerScript(
-                                webView = view,
-                                isDark = isDarkReader
+                            evaluateJavascript(
+                                buildCleanReaderScript(isDark),
+                                null
                             )
-
-                        }, 3500) // ⏱ 3.5 sec delay as YOU requested
+                        }, 1500) // short delay ONLY to allow hydration
                     }
                 }
 
@@ -48,90 +46,89 @@ fun ReaderScreen(
     )
 }
 
-private fun injectCleanerScript(
-    webView: WebView?,
-    isDark: Boolean
-) {
-    val script = """
+fun buildCleanReaderScript(isDark: Boolean): String {
+    return """
         (function() {
 
-            const isDark = $isDark;
+            const isDark = ${isDark};
 
-            const bgColor  = isDark ? '#000000' : '#f4f4f4';
-            const cardBg  = isDark ? '#000000' : '#ffffff';
-            const textCol = isDark ? '#eaeaea' : '#222';
-            const hrCol   = isDark ? '#222' : '#eee';
+            function waitUntilReady(callback) {
+                let attempts = 0;
+                const interval = setInterval(() => {
+                    const hasText = document.querySelectorAll('p').length > 5;
+                    const hasTitle = document.querySelector('h1');
+                    if (hasText && hasTitle) {
+                        clearInterval(interval);
+                        callback();
+                    }
+                    attempts++;
+                    if (attempts > 20) {
+                        clearInterval(interval);
+                        console.log("Content not detected");
+                    }
+                }, 300);
+            }
 
-            function findContent() {
-                const selectors = [
-                    '._s30J',
-                    '.arttextxml',
-                    '.story_content',
-                    '.article_content',
-                    'div[data-articlebody]',
-                    '.main-content'
-                ];
+            function runCleaner() {
 
-                for (let s of selectors) {
-                    const el = document.querySelector(s);
-                    if (el && el.innerText.length > 200) return el;
+                console.log("Starting cleanup");
+
+                const bgColor = isDark ? '#000' : '#f4f4f4';
+                const cardBg = isDark ? '#000' : '#fff';
+                const textCol = isDark ? '#eaeaea' : '#222';
+                const hrCol = isDark ? '#222' : '#eee';
+
+                function findContent() {
+                    const selectors = [
+                        '._s30J',
+                        '.arttextxml',
+                        '.story_content',
+                        '.article_content',
+                        'div[data-articlebody]'
+                    ];
+                    for (let s of selectors) {
+                        const el = document.querySelector(s);
+                        if (el && el.innerText.length > 200) return el;
+                    }
+                    return null;
                 }
 
-                let best = null;
-                let maxP = 0;
-                document.querySelectorAll('div').forEach(d => {
-                    const p = d.querySelectorAll('p').length;
-                    if (p > maxP) {
-                        maxP = p;
-                        best = d;
-                    }
-                });
-                return maxP > 3 ? best : null;
-            }
+                const headline = document.querySelector('h1')?.innerText || 'Article';
+                const img = document.querySelector('figure img');
+                const imageHTML = img ? `<img src="${'$'}{img.src}" style="max-width:100%;border-radius:8px;margin-bottom:20px;">` : '';
 
-            let headline = document.querySelector('h1')?.innerText || 'Article';
+                const content = findContent();
+                if (!content) return;
 
-            let mainImage = '';
-            const img = document.querySelector('figure img, .story_content img');
-            if (img?.src) {
-                mainImage = `<img src="${'$'}{img.src}" style="max-width:100%;border-radius:8px;margin-bottom:20px;">`;
-            }
-
-            const content = findContent();
-            let bodyHtml = '<p>Unable to extract article.</p>';
-
-            if (content) {
                 const clone = content.cloneNode(true);
-                clone.querySelectorAll('script, style, iframe, .vdo_embedd, .ad-container').forEach(e => e.remove());
-                bodyHtml = clone.innerHTML;
+                clone.querySelectorAll('script, iframe, style, .vdo_embedd, .ad-container').forEach(e => e.remove());
+
+                document.documentElement.innerHTML = `
+                    <head>
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    </head>
+                    <body style="margin:0;background:${'$'}{bgColor};">
+                        <div style="
+                            max-width:800px;
+                            margin:auto;
+                            padding:20px;
+                            font-family:Georgia, serif;
+                            font-size:18px;
+                            line-height:1.6;
+                            color:${'$'}{textCol};
+                            background:${'$'}{cardBg};
+                        ">
+                            <h1>${'$'}{headline}</h1>
+                            <hr style="border-top:1px solid ${'$'}{hrCol}">
+                            ${'$'}{imageHTML}
+                            ${'$'}{clone.innerHTML}
+                        </div>
+                    </body>
+                `;
             }
 
-            document.documentElement.innerHTML = '';
-            document.documentElement.innerHTML = `
-                <head>
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>${'$'}{headline}</title>
-                </head>
-                <body style="margin:0;background:${'$'}{bgColor};">
-                    <div style="
-                        max-width:800px;
-                        margin:auto;
-                        padding:20px;
-                        background:${'$'}{cardBg};
-                        color:${'$'}{textCol};
-                        font-family:Georgia,serif;
-                        line-height:1.6;
-                        min-height:100vh;">
-                        <h1 style="font-family:Arial;">${'$'}{headline}</h1>
-                        <hr style="border-top:1px solid ${'$'}{hrCol};">
-                        ${'$'}{mainImage}
-                        ${'$'}{bodyHtml}
-                    </div>
-                </body>
-            `;
+            waitUntilReady(runCleaner);
 
         })();
     """.trimIndent()
-
-    webView?.evaluateJavascript(script, null)
 }

@@ -22,7 +22,10 @@ import androidx.compose.material3.MaterialTheme
 
 
 @Composable
-fun NewsCard(item: NewsItem) {
+fun NewsCard(
+    item: NewsItem,
+    onOpen: () -> Unit
+) {
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -46,6 +49,7 @@ fun NewsCard(item: NewsItem) {
                     scaleY = scale
                 }
                 .clickable(
+                    onOpen()
                     interactionSource = interactionSource,
                     indication = null
                 ) {

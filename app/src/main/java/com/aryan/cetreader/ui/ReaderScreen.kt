@@ -29,13 +29,14 @@ fun ReaderScreen(
                     private var injected = false
                 
                     override fun onPageFinished(view: WebView?, url: String?) {
-                        if (injected) return
-                        injected = true
-                
-                        view?.postDelayed({
-                            injectCleanerScript(view)
-                        }, 3500) // ⏱ 3.5 seconds delay
+                        Handler(Looper.getMainLooper()).postDelayed({
+                    
+                            val js = buildCleanReaderScript(isDarkReader)
+                            webView.evaluateJavascript(js, null)
+                    
+                        }, 3500) // 3.5 seconds delay (as you requested)
                     }
+
                 }
 
 

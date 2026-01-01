@@ -12,6 +12,10 @@ import com.aryan.cetreader.ui.theme.AppTheme
 import com.aryan.cetreader.ui.theme.CETReaderTheme
 import com.aryan.cetreader.ui.theme.ThemePreferences
 import kotlinx.coroutines.launch
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+
 
 class MainActivity : ComponentActivity() {
 

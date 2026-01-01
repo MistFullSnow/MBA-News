@@ -5,7 +5,14 @@ import android.os.Handler
 import android.os.Looper
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
 import com.aryan.cetreader.ui.theme.AppTheme
 
@@ -17,34 +24,74 @@ fun ReaderScreen(
     onClose: () -> Unit
 ) {
     val isDark = theme == AppTheme.DARK || theme == AppTheme.AMOLED
+    var isLoading by remember { mutableStateOf(true) }
 
-    AndroidView(
-        factory = { context ->
-            WebView(context).apply {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                if (isDark) Color.Black else Color.White
+            )
+    ) {
 
-                settings.javaScriptEnabled = true
-                settings.domStorageEnabled = true
-                settings.loadsImagesAutomatically = true
-                settings.useWideViewPort = true
-                settings.loadWithOverviewMode = true
+        // 🔹 WEBVIEW (Initially hidden)
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { context ->
+                WebView(context).apply {
 
-                webViewClient = object : WebViewClient() {
+                    settings.javaScriptEnabled = true
+                    settings.domStorageEnabled = true
+                    settings.loadsImagesAutomatically = true
+                    settings.useWideViewPort = true
+                    settings.loadWithOverviewMode = true
 
-                    override fun onPageFinished(view: WebView?, url: String?) {
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            evaluateJavascript(
-                                buildCleanReaderScript(isDark),
-                                null
-                            )
-                        }, 1500) // short delay ONLY to allow hydration
+                    // Hide WebView initially
+                    alpha = 0f
+
+                    webViewClient = object : WebViewClient() {
+
+                        override fun onPageFinished(view: WebView?, url: String?) {
+                            Handler(Looper.getMainLooper()).postDelayed({
+
+                                evaluateJavascript(
+                                    buildCleanReaderScript(isDark)
+                                ) {
+                                    // Fade in ONLY after cleanup
+                                    animate()
+                                        .alpha(1f)
+                                        .setDuration(300)
+                                        .start()
+
+                                    isLoading = false
+                                }
+
+                            }, 1200) // Small delay for dynamic TOI content
+                        }
                     }
-                }
 
-                loadUrl(url)
+                    loadUrl(url)
+                }
+            }
+        )
+
+        // 🔹 LOADER OVERLAY
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    color = if (isDark)
+                        Color.White
+                    else
+                        MaterialTheme.colorScheme.primary
+                )
             }
         }
-    )
+    }
 }
+
 
 fun buildCleanReaderScript(isDark: Boolean): String {
     return """
